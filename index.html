@@ -163,7 +163,9 @@
   @media(max-width:900px){.gallery{grid-template-columns:repeat(2,1fr)}}
   .team{background:#fff}
   .team .wrap{display:grid;grid-template-columns:.85fr 1.15fr;gap:40px;align-items:center}
-  .team-photo{background:linear-gradient(135deg,var(--navy),var(--green));border-radius:20px;aspect-ratio:4/5;display:grid;place-items:center;color:#fff;text-align:center;padding:22px;box-shadow:var(--shadow)}
+  .team-photo{background:linear-gradient(135deg,var(--navy),var(--green));border-radius:20px;aspect-ratio:4/5;display:grid;place-items:center;color:#fff;text-align:center;padding:22px;box-shadow:var(--shadow);overflow:hidden}
+  .team-photo.has-img{padding:0;background:var(--navy)}
+  .team-photo img{width:100%;height:100%;object-fit:cover;object-position:center 30%;display:block}
   .team-photo .big{font-size:3.2rem;margin-bottom:8px}
   .team-photo span{font-size:.88rem;opacity:.9}
   .team h2{margin-bottom:14px}
@@ -488,7 +490,7 @@
 
 <section id="team" class="team">
   <div class="wrap">
-    <div class="team-photo reveal"><div><div class="big">👨‍👩‍👧‍👦</div><span>David &amp; Becky Kampmeyer</span></div></div>
+    <div class="team-photo has-img reveal"><img src="/david-becky-kampmeyer-jacksonville-realtors.jpg" alt="David and Becky Kampmeyer, licensed Florida Realtors and cash home buyers serving Jacksonville, St. Augustine and Clay County" width="1068" height="1600" loading="lazy"></div>
     <div class="reveal s1">
       <div class="eyebrow">Meet Your Local Team</div>
       <h2>Hi, we're David &amp; Becky Kampmeyer.</h2>
