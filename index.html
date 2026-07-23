@@ -99,8 +99,7 @@
   }
 
   .hero{background:linear-gradient(160deg,var(--navy) 0%,var(--navy-deep) 100%);color:#fff;position:relative;overflow:hidden}
-  .hero:after{content:"";position:absolute;right:-140px;top:-120px;width:440px;height:440px;background:radial-gradient(circle,rgba(46,158,91,.35),transparent 70%);border-radius:50%;animation:float 9s ease-in-out infinite}
-  @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(26px)}}
+  .hero:after{content:"";position:absolute;right:-140px;top:-120px;width:440px;height:440px;background:radial-gradient(circle,rgba(46,158,91,.35),transparent 70%);border-radius:50%}
   .hero .wrap{display:grid;grid-template-columns:1.08fr .92fr;gap:44px;align-items:center;position:relative;z-index:2;padding-top:52px;padding-bottom:52px}
   .hero h1{color:#fff;font-size:2.85rem;margin-bottom:16px}
   .hero h1 span{color:var(--amber)}
@@ -296,7 +295,7 @@
       <p class="hero-call hero-anim h4">Prefer to talk? Call or text <a href="tel:+19045004663">(904) 500-HOME</a> — reach David or Becky directly.</p>
     </div>
 
-    <div class="lf-card hero-anim h3" id="book">
+    <div class="lf-card" id="book">
       <div class="lf-progress"><div class="lf-bar" id="lfbar"></div></div>
       <div class="lf-body">
         <div class="lf-step active" data-step="1">
