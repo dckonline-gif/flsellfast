@@ -1,10 +1,19 @@
 // Vercel serverless function: /api/lead  (CommonJS for zero-config Node runtime)
-// Emails every lead to david@realestate904.com via Resend — including the
-// partial (address-only) capture when a visitor doesn't finish the form.
+//
+// Every lead now goes to the DESK first (kampmeyer-desk), which stores it in
+// Postgres before it emails anyone. That is the whole point: email alone loses
+// a lead the moment a send bounces or someone deletes the wrong message, and
+// this endpoint used to be email-only.
+//
+// The Resend send below is kept as a FALLBACK and only runs if the desk did not
+// accept the lead. A duplicate notification is possible if the desk stores the
+// lead but we never hear the answer (a timeout) — deliberately, because a
+// duplicate email is a far cheaper mistake than a lost seller.
 //
 // Env vars (Vercel → Settings → Environment Variables):
-//   RESEND_API_KEY    the re_... sending key
-//   LEAD_TO_EMAIL     david@realestate904.com
+//   DESK_URL          https://kampmeyer-desk.vercel.app/api/lead  (optional override)
+//   RESEND_API_KEY    the re_... sending key   (fallback path)
+//   LEAD_TO_EMAIL     david@realestate904.com  (fallback path)
 //   LEAD_FROM_EMAIL   Kampmeyer Leads <leads@flsellfast.com>
 
 module.exports = async (req, res) => {
@@ -21,6 +30,30 @@ module.exports = async (req, res) => {
   const TO   = process.env.LEAD_TO_EMAIL   || "david@realestate904.com";
   const FROM = process.env.LEAD_FROM_EMAIL || "Kampmeyer Leads <leads@flsellfast.com>";
   const KEY  = process.env.RESEND_API_KEY;
+  const DESK = process.env.DESK_URL || "https://kampmeyer-desk.vercel.app/api/lead";
+
+  // ── Primary: hand the lead to the desk, which persists BEFORE it notifies.
+  // Bounded so a slow desk never holds up the visitor's form; on any failure we
+  // fall through to the email below rather than dropping the lead.
+  try {
+    const ctl = new AbortController();
+    const timer = setTimeout(() => ctl.abort(), 6000);
+    let deskRes;
+    try {
+      deskRes = await fetch(DESK, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Origin": "https://www.flsellfast.com" },
+        body: JSON.stringify(Object.assign({}, lead, { company: "FLSELLFAST" })),
+        signal: ctl.signal,
+      });
+    } finally { clearTimeout(timer); }
+    if (deskRes && deskRes.ok) return res.status(200).json({ ok: true, via: "desk" });
+    console.error("desk_rejected", deskRes && deskRes.status, (await deskRes.text().catch(() => "")).slice(0, 200));
+  } catch (e) {
+    console.error("desk_unreachable", e && e.message);
+  }
+
+  // ── Fallback: the original email path, unchanged.
   if (!KEY) return res.status(500).json({ error: "RESEND_API_KEY not configured" });
 
   const status = lead.status || "lead";
@@ -51,7 +84,7 @@ module.exports = async (req, res) => {
       body: JSON.stringify({ from: FROM, to: [TO], subject: subject, html: html, reply_to: lead.email || undefined })
     });
     if (!r.ok) { const t = await r.text(); return res.status(502).json({ error: "Resend send failed", detail: t }); }
-    return res.status(200).json({ ok: true });
+    return res.status(200).json({ ok: true, via: "email-fallback" });
   } catch (e) {
     return res.status(500).json({ error: String(e) });
   }
